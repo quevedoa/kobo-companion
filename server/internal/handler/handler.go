@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"html"
 	"kobo-companion/internal/entities"
@@ -27,11 +26,6 @@ func New(llmGateway llm.LLM, jobRepo jobrepository.JobRepository) *Handler {
 	}
 }
 
-type SelectionRequest struct {
-	Title string `json:"title"`
-	Text  string `json:"text"`
-}
-
 func (h *Handler) HandleJob(w http.ResponseWriter, r *http.Request) {
 	id := strings.TrimPrefix(r.URL.Path, "/job/")
 	id = strings.TrimSpace(id)
@@ -50,16 +44,22 @@ func (h *Handler) HandleJob(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) HandleSelection(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
-	var req SelectionRequest
-	err := json.NewDecoder(r.Body).Decode(&req)
-	if err != nil {
-		http.Error(w, "invalid JSON", http.StatusBadRequest)
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	text := strings.TrimSpace(r.PostForm.Get("text"))
+	title := strings.TrimSpace(r.PostForm.Get("title"))
+
+	if text == "" || title == "" {
+		http.Error(w, "missing text or title", http.StatusBadRequest)
 		return
 	}
 
 	jobMeta := entities.Meta{
-		Title: req.Title,
-		Text:  req.Text,
+		Title: title,
+		Text:  text,
 	}
 
 	jobID, err := h.JobRepo.CreateJob(jobMeta)
@@ -120,11 +120,6 @@ func (h *Handler) renderJob(w http.ResponseWriter, id uuid.UUID) {
 		renderPage(w, "Recap error", fmt.Sprintf("<h1>Could not make recap</h1><div class='box'>%s</div>", html.EscapeString(j.Error)), 0)
 	default:
 		body := fmt.Sprintf("<h1>Recap: %s</h1><div class='box'>%s</div>", safeTitle, html.EscapeString(j.Summary))
-		// body += fmt.Sprintf("<p class='small'>Mode: %s | Input words: %d</p>", html.EscapeString(j.Meta.Type), j.ExcerptWordCount)
-		// if j.Meta.Type == "position" {
-		// 	body += fmt.Sprintf("<p class='small'>Book words indexed: %d | Position: %d | Chapter match: %s</p>", j.Where.TotalWords, j.Where.EndWord, html.EscapeString(valueOr(j.Where.MatchedChapter, "none")))
-		// 	body += fmt.Sprintf("<p class='small'>Book file: %s</p>", html.EscapeString(j.BookPath))
-		// }
 		renderPage(w, "Kobo recap", body, 0)
 	}
 }
