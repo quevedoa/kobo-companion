@@ -3,7 +3,9 @@
 set -eu
 
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-MOUNT_PATH=${KOBO_MOUNT:-/Volumes/KOBOeReader}
+MOUNT_PATH=${KOBO_MOUNT:-/media/qvdo/KOBOeReader}
+server_url=${SERVER_URL:-https://qvdo.taila7ecf5.ts.net}
+server_url=${server_url%/}
 DEST_ROOT="$MOUNT_PATH/.adds/nm"
 DEST_SCRIPTS="$DEST_ROOT/recap-scripts"
 DEST_PROGRAMS="$DEST_ROOT/programs"
@@ -16,31 +18,6 @@ fi
 if [ ! -d "$MOUNT_PATH/.adds" ]; then
   echo "Missing $MOUNT_PATH/.adds; is this the Kobo volume?" >&2
   exit 1
-fi
-
-if [ -n "${SERVER_URL:-}" ]; then
-  server_url=${SERVER_URL%/}
-else
-  default_interface=$(
-    route -n get default 2>/dev/null |
-      awk '/interface:/{print $2; exit}'
-  )
-  server_ip=""
-  if [ -n "$default_interface" ]; then
-    server_ip=$(ipconfig getifaddr "$default_interface" 2>/dev/null || true)
-  fi
-  if [ -z "$server_ip" ]; then
-    server_ip=$(
-      ifconfig 2>/dev/null |
-        awk '/inet / && $2 != "127.0.0.1" {print $2; exit}'
-    )
-  fi
-  if [ -z "$server_ip" ]; then
-    echo "Could not detect the Mac Wi-Fi address." >&2
-    echo "Run with SERVER_URL=http://YOUR_IP:8080 make sync-kobo" >&2
-    exit 1
-  fi
-  server_url="http://$server_ip:8080"
 fi
 
 echo "Kobo:   $MOUNT_PATH"
