@@ -9,8 +9,9 @@ import (
 )
 
 type InMemoryJobRepo struct {
-	mu   sync.RWMutex
-	Memo map[uuid.UUID]*entities.Job
+	mu     sync.RWMutex
+	Memo   map[uuid.UUID]*entities.Job
+	Latest *entities.Job
 }
 
 func NewInMemoryJobRepo() *InMemoryJobRepo {
@@ -19,16 +20,24 @@ func NewInMemoryJobRepo() *InMemoryJobRepo {
 	}
 }
 
+func (r *InMemoryJobRepo) GetLatest() *entities.Job {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return r.Latest
+}
+
 func (r *InMemoryJobRepo) CreateJob(meta entities.Meta) (uuid.UUID, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
 	jobID := uuid.New()
-	r.Memo[jobID] = &entities.Job{
+	job := &entities.Job{
 		ID:     jobID,
 		Meta:   meta,
 		Status: entities.StatusPending,
 	}
+	r.Memo[jobID] = job
+	r.Latest = job
 	return jobID, nil
 }
 

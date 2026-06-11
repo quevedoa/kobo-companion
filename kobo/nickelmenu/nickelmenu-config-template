@@ -1,0 +1,7 @@
+menu_item : main : Dark Mode : nickel_setting : toggle : dark_mode
+menu_item : main : Browser : nickel_browser :
+menu_item : main : Test server with wget : cmd_output : 9000:/usr/bin/wget -O - __SERVER_URL__/latest
+
+menu_item :selection :AI recap selection :cmd_output :9000:/bin/sh /mnt/onboard/.adds/nm/recap-scripts/send-selection.sh '{1|S|$}'
+chain_success :nickel_browser :modal:__SERVER_URL__/latest
+chain_failure :dbg_msg :Could not upload selected text. Check .adds/nm/recap-scripts/last-selection.log.

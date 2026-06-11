@@ -29,6 +29,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/selection", h.HandleSelection)
 	mux.HandleFunc("/job/", h.HandleJob)
+	mux.HandleFunc("/latest", h.HandleLatest)
 
 	log.Println("Listening on http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", mux))

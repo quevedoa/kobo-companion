@@ -26,6 +26,16 @@ func New(llmGateway llm.LLM, jobRepo jobrepository.JobRepository) *Handler {
 	}
 }
 
+func (h *Handler) HandleLatest(w http.ResponseWriter, r *http.Request) {
+	j := h.JobRepo.GetLatest()
+	if j == nil {
+		renderPage(w, "No recap yet", "<h1>No recap yet</h1><p>Use a Kobo menu item first.</p>", 0)
+		return
+	}
+
+	h.renderJob(w, j.ID)
+}
+
 func (h *Handler) HandleJob(w http.ResponseWriter, r *http.Request) {
 	id := strings.TrimPrefix(r.URL.Path, "/job/")
 	id = strings.TrimSpace(id)
@@ -86,8 +96,9 @@ func (h *Handler) processJob(ctx context.Context, jobID uuid.UUID) {
 		return
 	}
 
+	fmt.Println(job.Meta.Title)
 	llmRes, err := h.LLMGateway.Generate(ctx, llm.GenerateRequest{
-		Prompt: job.Meta.Text,
+		Prompt: fmt.Sprintf("I am going to give you a piece of text from the book titled: %s (if the title is empty ignore). I want you to then summarize the text so that I know what is happening in the context of the book. Make the summary very simple so I know immediately what is happening. Text: %s", job.Meta.Title, job.Meta.Text),
 	})
 	if err != nil {
 		job.Status = entities.StatusFailed
