@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"kobo-companion/internal/config"
 	"kobo-companion/internal/entities"
 	jobrepository "kobo-companion/internal/gateway/job-repository"
@@ -31,6 +32,6 @@ func main() {
 	mux.HandleFunc("GET /job/{jobID}", h.HandleJob)
 	mux.HandleFunc("/latest", h.HandleLatest)
 
-	log.Println("Listening on http://localhost:8080")
+	log.Println(fmt.Sprintf("Listening on %s", cfg.ListenAddress))
 	log.Fatal(http.ListenAndServe(cfg.ListenAddress, mux))
 }
