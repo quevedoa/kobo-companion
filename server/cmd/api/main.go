@@ -27,10 +27,10 @@ func main() {
 
 	h := handler.New(llmGateway, jobRepo)
 	mux := http.NewServeMux()
-	mux.HandleFunc("/api/selection", h.HandleSelection)
-	mux.HandleFunc("/job/", h.HandleJob)
+	mux.HandleFunc("POST /api/selection", h.HandleSelection)
+	mux.HandleFunc("GET /job/{jobID}", h.HandleJob)
 	mux.HandleFunc("/latest", h.HandleLatest)
 
 	log.Println("Listening on http://localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", mux))
+	log.Fatal(http.ListenAndServe(cfg.ListenAddress, mux))
 }
