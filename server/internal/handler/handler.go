@@ -80,7 +80,7 @@ func (h *Handler) HandleSelection(w http.ResponseWriter, r *http.Request) {
 	}
 	go h.processJob(ctx, jobID)
 
-	http.Redirect(w, r, "/job/"+jobID.String(), http.StatusSeeOther)
+	w.WriteHeader(http.StatusAccepted)
 }
 
 func (h *Handler) processJob(ctx context.Context, jobID uuid.UUID) {
