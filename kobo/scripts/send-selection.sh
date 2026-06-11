@@ -93,5 +93,4 @@ RC=$?
 echo "wget exit code: $RC" >> "$LOG"
 if [ "$RC" -ne 0 ]; then echo "Upload failed with exit code $RC" | tee -a "$LOG"; exit "$RC"; fi
 
-echo "Uploaded selected text."
 exit 0
